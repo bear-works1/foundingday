@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Founder Blueprint</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f4f7fb; --card:#ffffff; --ink:#1f2733; --muted:#6b7688;
+    --brand:#2563eb; --brand2:#7c3aed; --good:#16a34a; --line:#e4e9f2; --accent:#f59e0b;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:'Nunito','Segoe UI',system-ui,Arial,sans-serif;background:linear-gradient(180deg,#eaf1ff 0%,#f5edff 55%,#ffeef7 100%);background-attachment:fixed;min-height:100vh;color:var(--ink)}
+  header{position:sticky;top:0;z-index:50;background:#fff;border-bottom:1px solid var(--line);box-shadow:0 2px 8px rgba(20,30,60,.05)}
+  .bar-wrap{max-width:860px;margin:0 auto;padding:10px 18px}
+  .titlerow{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  .logo{font-family:'Fredoka','Nunito',sans-serif;font-weight:700;font-size:23px;background:linear-gradient(90deg,var(--brand),var(--brand2),#ec4899);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .who input{border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:14px;width:150px}
+  .progress{height:14px;background:#eef2f8;border-radius:20px;margin-top:10px;overflow:hidden}
+  .progress > i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--brand),var(--good));transition:width .4s ease}
+  .pmeta{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:6px}
+  main{max-width:860px;margin:22px auto 120px;padding:0 18px}
+  .section{display:none;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:26px;box-shadow:0 6px 20px rgba(20,30,60,.05)}
+  .section.active{display:block;animation:pop .25s ease}
+  @keyframes pop{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .step-badge{display:inline-block;background:#eef2ff;color:var(--brand);font-weight:700;font-size:12px;padding:4px 12px;border-radius:20px;letter-spacing:.03em}
+  h2{margin:12px 0 4px;font-size:27px;font-family:'Fredoka','Nunito',sans-serif;font-weight:600}
+  .sub{color:var(--muted);margin:0 0 18px;font-size:15px}
+  label.f{display:block;font-weight:600;margin:16px 0 6px;font-size:15px}
+  input[type=text],input[type=number],textarea,select{width:100%;border:1px solid var(--line);border-radius:10px;padding:11px 12px;font-size:15px;font-family:inherit;background:#fcfdff}
+  textarea{min-height:80px;resize:vertical}
+  .row{display:flex;gap:14px;flex-wrap:wrap}
+  .row > div{flex:1;min-width:170px}
+  .fill{font-size:16px;line-height:2.1}
+  .fill input{display:inline-block;width:240px;border:none;border-bottom:2px dashed var(--brand);border-radius:0;background:transparent;padding:2px 6px}
+  .example{background:#fff8ec;border-left:4px solid var(--accent);padding:10px 14px;border-radius:8px;font-size:14px;color:#7a5b12;margin-top:10px}
+  .hintbox{background:#eef6ff;border-left:4px solid var(--brand);padding:10px 14px;border-radius:8px;font-size:14px;color:#1e3a5f;margin-top:10px}
+  .checks{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:8px;margin-top:8px}
+  .chk{display:flex;align-items:center;gap:8px;background:#f7f9fd;border:1px solid var(--line);border-radius:10px;padding:9px 11px;cursor:pointer;font-size:14px}
+  .chk input{width:17px;height:17px;accent-color:var(--brand)}
+  .chk.on{background:#eaf1ff;border-color:var(--brand)}
+  .model{display:block;background:#f7f9fd;border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-top:8px;cursor:pointer}
+  .model.on{background:#f3ecff;border-color:var(--brand2)}
+  .model b{font-size:15px}
+  .model span{display:block;color:var(--muted);font-size:13px;margin-top:2px}
+  .uploader{border:2px dashed #c3d0e6;border-radius:14px;padding:16px;text-align:center;background:#f9fbff;cursor:pointer}
+  .uploader:hover{background:#eef4ff}
+  .uploader img{max-width:100%;max-height:200px;border-radius:10px;margin-top:8px}
+  .uploader .hint{color:var(--muted);font-size:13px}
+  .btn{border:none;border-radius:12px;padding:11px 18px;font-size:15px;font-weight:700;cursor:pointer}
+  .btn-primary{background:var(--brand);color:#fff}
+  .btn-ghost{background:#eef2f8;color:var(--ink)}
+  .btn-ai{background:linear-gradient(90deg,var(--brand2),var(--brand));color:#fff}
+  .btn:disabled{opacity:.5;cursor:default}
+  .ai-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+  .ai-box{margin-top:14px;border:1px solid #e6ddfb;background:#faf7ff;border-radius:14px;padding:14px 16px;display:none}
+  .ai-box.show{display:block}
+  .ai-head{font-weight:700;color:var(--brand2);font-size:14px;margin-bottom:8px}
+  .ai-body{font-size:14.5px;line-height:1.55;white-space:pre-wrap}
+  .spin{width:16px;height:16px;border:3px solid #ddd;border-top-color:var(--brand2);border-radius:50%;display:inline-block;animation:sp 1s linear infinite;vertical-align:middle}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  .nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);padding:12px 18px;display:flex;justify-content:space-between;max-width:860px;margin:0 auto;box-shadow:0 -3px 14px rgba(20,30,60,.06)}
+  .money-table{width:100%;border-collapse:collapse;margin-top:12px}
+  .money-table th,.money-table td{border:1px solid var(--line);padding:9px;text-align:center;font-size:14px}
+  .money-table th{background:#eef2ff}
+  .calc{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:12px;margin-top:12px;font-size:15px}
+  .calc b{color:var(--good)}
+  .warn{background:#fff4e5;border:1px solid #f5c98a;color:#8a5a12;border-radius:10px;padding:10px 14px;font-size:14px;margin-top:10px;display:none}
+  .warn.show{display:block}
+  .demo-flag{background:#fff4e5;border:1px solid #f5c98a;color:#8a5a12;font-size:12px;padding:6px 12px;border-radius:8px;text-align:center;margin:0 auto 14px;max-width:860px}
+  /* poster designer */
+  .poster{border-radius:14px;padding:20px;text-align:center;color:#fff;min-height:230px;display:flex;flex-direction:column;justify-content:center;gap:10px;box-shadow:0 6px 18px rgba(0,0,0,.12)}
+  .poster h3{margin:0;font-size:26px;line-height:1.1}
+  .poster img{max-width:150px;max-height:130px;margin:0 auto;border-radius:8px;background:#fff;padding:4px}
+  .poster .price{font-size:30px;font-weight:800}
+  .poster .tag{font-style:italic;font-size:16px;opacity:.95}
+  /* booth chat */
+  .booth-log{background:#f7f9fd;border:1px solid var(--line);border-radius:12px;padding:12px;min-height:120px;max-height:260px;overflow:auto;margin-top:8px}
+  .bubble{margin:6px 0;padding:9px 13px;border-radius:14px;font-size:14px;max-width:80%;line-height:1.4}
+  .b-cust{background:#ede9fe;color:#4c2889;border-bottom-left-radius:3px}
+  .b-you{background:#dbeafe;color:#1e40af;margin-left:auto;border-bottom-right-radius:3px}
+  /* ---- engagement ---- */
+  .progress{height:16px;box-shadow:inset 0 1px 3px rgba(0,0,0,.08)}
+  .progress > i{background:linear-gradient(90deg,#2563eb,#7c3aed,#16a34a);background-size:200% 100%;animation:shine 3s linear infinite;position:relative}
+  @keyframes shine{to{background-position:200% 0}}
+  .rankrow{display:flex;align-items:center;gap:10px;margin-top:9px;flex-wrap:wrap}
+  .rank-chip{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(90deg,#7c3aed,#2563eb);color:#fff;font-weight:800;font-size:13px;padding:5px 13px;border-radius:20px;box-shadow:0 3px 10px rgba(90,50,180,.28);transition:transform .2s}
+  .rank-chip.bump{transform:scale(1.14)}
+  .points{font-weight:800;color:#7c3aed;font-size:13px}
+  .points small{color:var(--muted);font-weight:700}
+  .step-badge.done{background:#dcfce7;color:#15803d}
+  #confetti{position:fixed;inset:0;pointer-events:none;z-index:9999}
+  #toastHost{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:9998;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
+  .toast{background:#fff;border:2px solid #7c3aed;color:#3b1d78;font-weight:800;padding:11px 20px;border-radius:30px;box-shadow:0 10px 26px rgba(80,40,160,.25);font-size:15px;opacity:0;transform:translateY(-14px) scale(.9);transition:all .35s cubic-bezier(.2,1.3,.4,1)}
+  .toast.show{opacity:1;transform:none}
+  .modal{position:fixed;inset:0;background:rgba(30,20,60,.55);display:none;align-items:center;justify-content:center;z-index:10000}
+  .modal.show{display:flex}
+  .modal .box{background:#fff;border-radius:24px;padding:36px 34px;text-align:center;max-width:430px;box-shadow:0 24px 70px rgba(0,0,0,.35);animation:pop .35s}
+  .modal .big{font-size:60px;line-height:1}
+  .modal h2{font-family:'Fredoka',sans-serif;font-size:30px;margin:12px 0 6px}
+  .modal p{color:var(--muted);font-size:16px;margin:0 0 4px}
+  /* start gate */
+  .gate{position:fixed;inset:0;z-index:20000;background:linear-gradient(160deg,#2563eb,#7c3aed 55%,#ec4899);display:flex;align-items:center;justify-content:center;padding:20px}
+  .gate.hide{display:none}
+  .gate-card{background:#fff;border-radius:24px;padding:34px;max-width:420px;width:100%;box-shadow:0 24px 70px rgba(0,0,0,.32);text-align:center}
+  .gate-logo{font-family:'Fredoka',sans-serif;font-size:30px;font-weight:700;background:linear-gradient(90deg,#2563eb,#7c3aed,#ec4899);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .gate-sub{color:#6b7688;margin:6px 0 18px}
+  .gate-card label.f{text-align:left}
+  .gate-btn{width:100%;margin-top:18px;font-size:17px;padding:13px}
+  .gate-tip{color:#9aa4b5;font-size:12px;margin:14px 0 0}
+  .gate-err{color:#dc2626;font-size:13px;font-weight:700;min-height:18px;margin-top:8px}
+  @media print{
+    header,.nav,.ai-actions,.btn,.uploader .hint{display:none!important}
+    .section{display:block!important;box-shadow:none;page-break-inside:avoid;margin-bottom:16px;border-color:#ccc}
+    .ai-box{display:block!important}
+    body{background:#fff}
+  }
+</style>
+</head>
+<body>
+
+<div class="gate" id="gate">
+  <div class="gate-card">
+    <div class="gate-logo">🚀 Founder Blueprint</div>
+    <p class="gate-sub">Let's build your company! First, who are you?</p>
+    <label class="f">Class code</label>
+    <input type="text" id="gClass" placeholder="e.g. FOUNDERS7" oninput="this.value=this.value.toUpperCase()">
+    <label class="f">Your name</label>
+    <input type="text" id="gName" placeholder="First name + last initial">
+    <div class="gate-err" id="gErr"></div>
+    <button class="btn btn-primary gate-btn" onclick="startApp()">Start building →</button>
+    <p class="gate-tip">Your teacher gives you the class code. Your work saves automatically.</p>
+  </div>
+</div>
+
+<div class="demo-flag" id="demoFlag">Demo mode: AI replies are samples. Set your API endpoint (note at the bottom of the code) to turn on real AI. Your work saves automatically on this device.</div>
+
+<header>
+  <div class="bar-wrap">
+    <div class="titlerow">
+      <div class="logo">🚀 Founder Blueprint</div>
+      <div class="who">
+        <input id="founderName" type="text" placeholder="Your name" oninput="save()">
+        <input id="companyNameTop" type="text" placeholder="Company name" oninput="save()" style="margin-left:6px">
+      </div>
+    </div>
+    <div class="progress"><i id="pbar"></i></div>
+    <div class="pmeta"><span id="stepLabel">Step 1</span><span id="pctLabel">0% complete</span></div>
+    <div class="rankrow"><span class="rank-chip" id="rankChip">🌱 Idea Explorer</span><span class="points" id="pointsLbl">0 <small>Founder Points</small></span></div>
+  </div>
+</header>
+
+<canvas id="confetti"></canvas>
+<div id="toastHost"></div>
+<div class="modal" id="doneModal"><div class="box"><div class="big">🎉</div><h2 id="doneTitle">You did it!</h2><p id="doneMsg"></p><button class="btn btn-ai" style="margin-top:18px" onclick="document.getElementById('doneModal').classList.remove('show')">Let's launch! 🚀</button></div></div>
+
+<main id="main"></main>
+
+<div class="nav">
+  <button class="btn btn-ghost" id="prevBtn" onclick="go(-1)">← Back</button>
+  <button class="btn btn-primary" id="exportBtn" onclick="exportPDF()">📄 Export Business Plan</button>
+  <button class="btn btn-primary" id="nextBtn" onclick="go(1)">Next →</button>
+</div>
+
+<script>
+/* ============================================================
+   CONFIG — Supabase backend (Founder-Blueprint project)
+   ============================================================ */
+const SB_URL   = "https://zzawnvosskllubxxfmhg.supabase.co";
+const SB_KEY   = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp6YXdudm9zc2tsbHVieHhmbWhnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM0Mzc3NzAsImV4cCI6MjA5OTAxMzc3MH0.Bl4HW8rrTvWRv2ASk0mCdzp_0jhzzcoPqfO6OHMU9D8";
+const AI_ENDPOINT = SB_URL + "/functions/v1/ai";
+const SB_HEADERS = { "apikey": SB_KEY, "Authorization": "Bearer " + SB_KEY, "Content-Type": "application/json" };
+
+const data = {};
+const aiOutputs = {};      // latest AI reply per section (saved for the teacher dashboard)
+let IDENTITY = null;       // { class_code, student_name }
+let current = 0;
+
+/* ---------- Sections ---------- */
+const sections = [
+  // 1
+  { id:"company", title:"Your Company", sub:"Every founder starts here.", render:()=>`
+    ${text("companyName","Company Name","What's your business called?")}
+    ${text("founder2","Founder Name(s)","Who's building this?")}
+    <label class="f">Business Mission — finish the sentence:</label>
+    <div class="fill">We help <input type="text" id="mission_who" oninput="save()" placeholder="who"> by <input type="text" id="mission_how" oninput="save()" placeholder="how">.</div>
+    <div class="example">Example: We help busy parents find fun gifts by making personalized keychains.</div>
+    ${aiPanel("company","AI Consultant")}
+    <div class="ai-actions">${aiBtn("company","AI Consultant","Ask AI Consultant",true)}</div>
+  `},
+
+  // 2  (logo generate button REMOVED; feedback renamed)
+  { id:"brand", title:"Design Your Brand", sub:"How your company looks and feels.", render:()=>`
+    <label class="f">Company Logo — draw it, or upload one you made (ChatGPT, Canva, etc.)</label>
+    ${uploader("logo")}
+    <div class="row">
+      <div><label class="f">Brand color</label><input type="color" id="brandColor" value="#2563eb" oninput="save()" style="width:60px;height:40px;padding:2px"></div>
+      <div><label class="f">What feeling should customers have?</label>${bareText("brandFeeling","fun? trustworthy? cool?")}</div>
+    </div>
+    ${aiPanel("brand","AI Designer")}
+    <div class="ai-actions">${aiBtn("brand","AI Designer","Get AI Designer feedback",true)}</div>
+  `},
+
+  // 3  (product OR service; draw removed; more checkboxes + Other text)
+  { id:"product", title:"Create Your Product or Service", sub:"The thing you'll offer — a product, a service, or an app.", render:()=>`
+    ${text("productName","Product / Service Name","")}
+    <label class="f">Is this a...</label>
+    ${checks("kind",["Physical product","Service","App","Website","Mix"])}
+    <label class="f">Describe it — what is it, and what makes it awesome?</label>${bareTextarea("productDesc")}
+    <label class="f">My idea... (check all that fit)</label>
+    ${checks("feat",["saves time","solves a problem","is an app or website","is a service","teaches or helps you learn","keeps you organized","connects people","is fun or entertaining","is personalized","is eco-friendly","is inclusive / for everyone","keeps you safe","helps with money","is a subscription","is collectible","is delicious","is beautiful"])}
+    ${customText("featOther","Other — describe in your own words")}
+    ${aiPanel("product","AI Consultant")}
+    <div class="ai-actions">${aiBtn("product","AI Consultant","Ask AI Consultant",true)}</div>
+  `},
+
+  // 4  (reframed: problem / age group / needs + custom input)
+  { id:"customer", title:"Know Your Customer", sub:"Understand the people you're helping.", render:()=>`
+    <label class="f">What problem does your customer have?</label>${bareTextarea("custProblem")}
+    <label class="f">What age group are they? (broadly)</label>
+    <input type="text" id="custAgeGroup" list="ageList" oninput="save()" placeholder="e.g., young kids, teens, busy parents, seniors, everyone">
+    <datalist id="ageList"><option>Young kids (under 8)</option><option>Kids (8–12)</option><option>Teens (13–17)</option><option>Young adults</option><option>Parents</option><option>Seniors</option><option>Everyone</option></datalist>
+    <label class="f">What do they need? What would make their life better?</label>${bareTextarea("custNeeds")}
+    <label class="f">Their biggest need (quick-pick, or write your own below)</label>
+    ${checks("need",["Save time","Save money","Have more fun","Get organized","Feel included","Learn something","Stay safe","Look or feel good","A great gift","Something unique"])}
+    ${customText("needOther","In your own words, what do they need most?")}
+    ${aiPanel("customer","AI Consultant")}
+    <div class="ai-actions">${aiBtn("customer","AI Consultant","Ask AI Consultant",true)}</div>
+  `},
+
+  // 5  (GATED thorough check; product/service; hints)
+  { id:"competition", title:"Know Your Competition", sub:"Real founders know exactly who they're up against.", render:()=>`
+    <label class="f">Who are your competitors? Name at least one thing people could buy or use instead.</label>${bareTextarea("compAlt")}
+    <label class="f">What makes YOUR product/service different? Be specific.</label>${bareTextarea("compBetter")}
+    <div class="hintbox"><b>How to find out:</b> search the App Store or Google for your idea · look at what's already sold in stores · ask friends what they use now · ask the AI Consultant to list similar products. You must name a real competitor AND a specific difference to continue.</div>
+    <div class="warn" id="warn_competition">Almost there! Name at least one competitor and one <i>specific</i> reason yours is different before moving on.</div>
+    ${aiPanel("competition","AI Consultant")}
+    <div class="ai-actions">${aiBtn("competition","AI Consultant","Ask AI Consultant — check my competition",true)}</div>
+  `},
+
+  // 6  (monetization models + numbers + AI research)
+  { id:"money", title:"Money Plan", sub:"How will your business actually make money?", render:()=>`
+    <label class="f">Pick your money model (choose one or more):</label>
+    ${modelPick("model",[
+      ["One-time sale","They pay once to buy it. (a toy, a craft, a snack)"],
+      ["Subscription","They pay a little every month. (an app, a club)"],
+      ["Freemium","Free to start, pay to unlock the good stuff. (games, apps)"],
+      ["Virtual currency / in-app buys","Free to use, buy coins or items inside. (Roblox, Fortnite)"],
+      ["Ads","Free for users; other businesses pay to advertise."],
+      ["Service fee","Charge per job, hour, or visit. (dog-walking, tutoring)"],
+      ["Pay what you want","Customers choose a fair price."],
+    ])}
+    <div class="hintbox">Making a <b>service</b> or <b>app</b>? Your "cost" might be your time, not materials — think about what you'd charge per customer or per month.</div>
+    <div class="row">
+      <div><label class="f">Cost to make one / your cost ($)</label><input type="number" id="mMaterials" oninput="calcMoney();save()" min="0" step="0.01"></div>
+      <div><label class="f">Extra costs (packaging, fees) ($)</label><input type="number" id="mPackaging" oninput="calcMoney();save()" min="0" step="0.01"></div>
+      <div><label class="f">Price per sale / per month ($)</label><input type="number" id="mPrice" oninput="calcMoney();save()" min="0" step="0.01"></div>
+    </div>
+    <div class="calc" id="moneyCalc">Fill in your numbers to see your profit.</div>
+    <label class="f">If you sell / sign up...</label>
+    <table class="money-table"><thead><tr><th>Customers</th><th>1</th><th>3</th><th>5</th><th>10</th><th>25</th></tr></thead>
+    <tbody><tr><td><b>Profit</b></td><td id="p1">–</td><td id="p3">–</td><td id="p5">–</td><td id="p10">–</td><td id="p25">–</td></tr></tbody></table>
+    ${aiPanel("money","AI Consultant")}
+    <div class="ai-actions">
+      ${aiBtn("money","AI Pricing Researcher","Ask AI to research pricing",false)}
+      ${aiBtn("money","AI Consultant","Ask AI Consultant — check my numbers",true)}
+    </div>
+  `},
+
+  // 7  (slogan + design an ad/poster)
+  { id:"marketing", title:"Marketing Plan", sub:"Get people excited to buy.", render:()=>`
+    <label class="f">Business slogan</label>${bareText("slogan","")}
+    <div class="example">Examples: "Small Toy. Big Adventure." · "Wear Your Imagination." · "Treat Yourself."</div>
+    <div class="ai-actions">${aiBtn("marketing","AI Slogan Writer","Ask AI for 5 slogans",false)}</div>
+    ${aiPanel("marketing","AI Slogan Writer")}
+    <label class="f" style="margin-top:22px">Now design it — an advertisement or a mini poster:</label>
+    ${checks("adtype",["Advertisement","Mini poster"])}
+    <div class="row">
+      <div>${text("posterHeadline","Big headline","Your product name!")}</div>
+      <div>${text("posterPrice","Price","$5")}</div>
+    </div>
+    ${text("posterTag","Catchphrase","Your slogan here")}
+    <label class="f">Add your logo or product image</label>
+    ${uploader("posterImg")}
+    <label class="f">Poster background color</label><input type="color" id="posterColor" value="#7c3aed" oninput="updatePoster();save()" style="width:60px;height:40px;padding:2px">
+    <label class="f">Live preview:</label>
+    <div class="poster" id="posterPreview" style="background:#7c3aed"><h3>Your headline</h3><div class="tag">Your catchphrase</div><div class="price">$0</div></div>
+  `},
+
+  // 8  (Sales Strategy + Talk to an AI customer)
+  { id:"sales", title:"Sales Strategy", sub:"How will you convince people at your booth?", render:()=>`
+    <label class="f">Check all you'll use</label>
+    ${checks("sales",["Smile","Let them hold / try it","Tell a story","Explain the problem","Show how it works","Ask questions","Give examples"])}
+    <label class="f">Objection practice</label>
+    <p class="sub" style="margin:6px 0">If someone says <b>"That's expensive."</b> — I'll say:</p>${bareTextarea("obj1")}
+    <p class="sub" style="margin:6px 0">If someone says <b>"I don't need that."</b> — I'll say:</p>${bareTextarea("obj2")}
+    <label class="f" style="margin-top:18px">Practice at your booth — talk to an AI customer:</label>
+    <div class="booth-log" id="boothLog"><div class="sub">Click "New customer" to start a practice conversation.</div></div>
+    <div class="row" style="margin-top:8px">
+      <div style="flex:3"><input type="text" id="boothInput" placeholder="Type what you'd say back..." onkeydown="if(event.key==='Enter')sendBooth()"></div>
+      <div style="flex:0 0 auto;display:flex;gap:8px"><button class="btn btn-ai" onclick="sendBooth()">Send</button><button class="btn btn-ghost" onclick="startBooth()">New customer</button></div>
+    </div>
+  `},
+
+  // 9  Elevator Pitch
+  { id:"pitch", title:"Elevator Pitch", sub:"30 seconds to win them over.", render:()=>`
+    <div class="fill" style="line-height:2.4">
+      Hi! I'm <input type="text" id="pitch1" oninput="save()" placeholder="name">.<br>
+      I created <input type="text" id="pitch2" oninput="save()" placeholder="product/service">.<br>
+      It's perfect for <input type="text" id="pitch3" oninput="save()" placeholder="customer">.<br>
+      It solves <input type="text" id="pitch4" oninput="save()" placeholder="problem">.<br>
+      Today it's only $<input type="text" id="pitch5" oninput="save()" placeholder="price" style="width:90px">. Would you like to check it out?
+    </div>
+    ${aiPanel("pitch","AI Pitch Coach")}
+    <div class="ai-actions">${aiBtn("pitch","AI Pitch Coach","Ask AI Pitch Coach",true)}</div>
+  `},
+
+  // 10 Launch Checklist
+  { id:"checklist", title:"Launch Checklist", sub:"Before Founders Day...", render:()=>`
+    ${checks("launch",["Logo finished","Product / service ready","Price decided","Marketing card finished","Pitch memorized","Booth ready"])}
+    <p class="sub" style="margin-top:14px">Tip: your progress bar at the top fills as you finish the Blueprint. Aim for 100%!</p>
+  `},
+
+  // 11 Next Steps (replaces reflection)
+  { id:"next", title:"Your Next Steps", sub:"What will you do after today to grow your idea?", render:()=>`
+    <label class="f">What's the FIRST thing you'll improve about your idea?</label>${bareTextarea("nextImprove")}
+    <label class="f">Who will you show it to this week to get feedback?</label>${bareText("nextShow","")}
+    <label class="f">How could your business grow bigger? (more customers? more products? an app?)</label>${bareTextarea("nextGrow")}
+    <label class="f">Pick your next moves</label>
+    ${checks("nextacts",["Make a real sample","Get feedback from 3 people","Improve the price","Practice the pitch","Build a simple version","Tell more customers","Design a better logo"])}
+    <label class="f">One goal for next month:</label>${bareText("nextGoal","")}
+    ${aiPanel("next","AI Consultant")}
+    <div class="ai-actions">${aiBtn("next","AI Consultant","Ask AI Consultant — what are my best next steps?",true)}</div>
+  `},
+];
+
+/* ---------- Field builders ---------- */
+function text(id,label,ph){return `<label class="f">${label}</label><input type="text" id="${id}" placeholder="${ph||''}" oninput="save()">`}
+function bareText(id,ph){return `<input type="text" id="${id}" placeholder="${ph||''}" oninput="save()">`}
+function bareTextarea(id){return `<textarea id="${id}" oninput="save()"></textarea>`}
+function customText(id,label){return `<label class="f" style="font-weight:500;color:var(--muted)">${label}</label><input type="text" id="${id}" oninput="save()">`}
+function checks(group,items){return `<div class="checks">`+items.map((t,i)=>`
+  <label class="chk" id="chkl_${group}_${i}"><input type="checkbox" id="chk_${group}_${i}" onchange="toggleChk('${group}',${i});save()"> ${t}</label>`).join("")+`</div>`}
+function modelPick(group,items){return items.map((it,i)=>`
+  <label class="model" id="chkl_${group}_${i}"><input type="checkbox" id="chk_${group}_${i}" style="margin-right:8px" onchange="toggleChk('${group}',${i});save()"><b>${it[0]}</b><span>${it[1]}</span></label>`).join("")}
+function uploader(id){return `<div class="uploader" onclick="document.getElementById('file_${id}').click()">
+  <input type="file" id="file_${id}" accept="image/*" style="display:none" onchange="handleImg('${id}',this)">
+  <div id="prev_${id}"><div class="hint">📷 Click to upload an image</div></div></div>`}
+function aiPanel(section,role){return `<div class="ai-box" id="ai_${section}"><div class="ai-head" id="aihead_${section}">🤖 ${role}</div><div class="ai-body" id="aibody_${section}"></div></div>`}
+function aiBtn(section,role,label,feedback){return `<button class="btn ${feedback?'btn-ghost':'btn-ai'}" onclick="askAI('${section}','${role}',this,${feedback?'true':'false'})">🤖 ${label}</button>`}
+
+/* ---------- Render + nav ---------- */
+function renderAll(){
+  document.getElementById("main").innerHTML = sections.map((s,i)=>`
+    <div class="section ${i===0?'active':''}" id="sec_${i}">
+      <span class="step-badge">Step ${i+1} of ${sections.length}</span>
+      <h2>${s.title}</h2><p class="sub">${s.sub}</p>
+      ${s.render()}
+    </div>`).join("");
+  restore();
+  updatePoster();
+  updateProgress();
+}
+function go(dir){
+  // Gate: competition step must be filled before advancing
+  if(dir>0 && sections[current].id==="competition" && !competitionOK()){
+    document.getElementById("warn_competition").classList.add("show");
+    return;
+  }
+  const next=current+dir;
+  if(next<0||next>=sections.length) return;
+  document.getElementById("sec_"+current).classList.remove("active");
+  current=next;
+  document.getElementById("sec_"+current).classList.add("active");
+  window.scrollTo({top:0,behavior:"smooth"});
+  updateProgress();
+}
+function competitionOK(){
+  const a=(document.getElementById("compAlt").value||"").trim();
+  const b=(document.getElementById("compBetter").value||"").trim();
+  return a.length>=3 && b.length>=8;
+}
+let prevDone=new Set(), lastMilestone=0, booted=false, cheerI=0;
+const aiDone={};
+// A step "counts" only when its key fields are filled AND its AI has been used.
+const stepReq={
+  company:{fields:["companyName","mission_who","mission_how"],ai:true},
+  brand:{fields:["brandFeeling"],ai:true},
+  product:{fields:["productName","productDesc"],groups:["kind","feat"],ai:true},
+  customer:{fields:["custProblem","custAgeGroup","custNeeds"],ai:true},
+  competition:{fields:["compAlt","compBetter"],ai:true},
+  money:{fields:["mMaterials","mPrice"],groups:["model"],ai:true},
+  marketing:{fields:["slogan","posterHeadline"],ai:true},
+  sales:{fields:["obj1","obj2"],groups:["sales"],ai:true},
+  pitch:{fields:["pitch1","pitch2","pitch3","pitch4","pitch5"],ai:true},
+  checklist:{groups:["launch"],ai:false},
+  next:{fields:["nextImprove","nextGoal"],ai:true},
+};
+function fieldFilled(id){ const el=document.getElementById(id); return !!(el && (el.value||"").trim()); }
+function stepDone(i){
+  const id=sections[i].id, req=stepReq[id]; if(!req) return false;
+  if(req.fields) for(const f of req.fields){ if(!fieldFilled(f)) return false; }
+  if(req.groups) for(const g of req.groups){ if(checkedLabels(g).length===0) return false; }
+  if(req.ai && !aiDone[id]) return false;
+  return true;
+}
+function saveAi(){ try{ localStorage.setItem("fbAiDone",JSON.stringify(aiDone)); }catch(e){} }
+function markAi(section){ aiDone[section]=true; saveAi(); updateProgress(); cloudSave(); }
+function updateProgress(){
+  document.getElementById("stepLabel").textContent=`Step ${current+1} of ${sections.length}`;
+  let done=0; const nowDone=new Set();
+  sections.forEach((s,i)=>{ if(stepDone(i)){done++;nowDone.add(i);} });
+  const pct=Math.round(done/sections.length*100);
+  document.getElementById("pbar").style.width=pct+"%";
+  document.getElementById("pctLabel").textContent=pct+"% complete";
+  document.getElementById("pointsLbl").innerHTML=(done*100)+` <small>Founder Points</small>`;
+  const chip=document.getElementById("rankChip"); const nr=rankFor(pct);
+  if(chip.textContent!==nr){ chip.textContent=nr; if(booted){ chip.classList.add("bump"); setTimeout(()=>chip.classList.remove("bump"),260);} }
+  sections.forEach((s,i)=>{ const b=document.querySelector("#sec_"+i+" .step-badge"); if(b) b.classList.toggle("done",nowDone.has(i)); });
+  if(booted){
+    for(const i of nowDone){ if(!prevDone.has(i)){ celebrateStep(); break; } }
+    [25,50,75,100].forEach(m=>{ if(pct>=m && lastMilestone<m){ lastMilestone=m; milestone(m); } });
+  }
+  prevDone=nowDone;
+  document.getElementById("prevBtn").disabled=(current===0);
+  document.getElementById("nextBtn").style.visibility=(current===sections.length-1)?"hidden":"visible";
+}
+
+/* ---------- Rewards & encouragement ---------- */
+function rankFor(p){
+  if(p>=100) return "🏆 Certified Founder!";
+  if(p>=75)  return "🚀 Almost a CEO";
+  if(p>=50)  return "⭐ Rising Entrepreneur";
+  if(p>=25)  return "🔧 Startup Builder";
+  if(p>0)    return "🌟 Founder in Training";
+  return "🌱 Idea Explorer";
+}
+const cheers=["Nice work, founder! 🚀","You're on a roll! 🔥","Great thinking! ✨","Your company's coming to life!","Boom — another one done! 💪","Love it — keep going!","You've got founder energy! ⚡","Brilliant idea! 🌟","Way to go! 🙌","That's the spirit! 🎯"];
+function celebrateStep(){ toast("Step complete! "+cheers[cheerI++ % cheers.length]); confettiBurst(34); }
+function milestone(m){
+  confettiBurst(70);
+  if(m===100){
+    toast("🎉 100%! You're a real founder!");
+    const co=val("companyName")||"Your company";
+    document.getElementById("doneTitle").textContent="You're a Founder! 🏆";
+    document.getElementById("doneMsg").textContent=`${co} has a complete Founder Blueprint. Time to launch on Founders Day!`;
+    document.getElementById("doneModal").classList.add("show");
+  } else {
+    toast(`${m}% done — you leveled up! 🎉`);
+  }
+}
+function toast(msg){
+  const host=document.getElementById("toastHost");
+  const t=document.createElement("div"); t.className="toast"; t.textContent=msg; host.appendChild(t);
+  requestAnimationFrame(()=>t.classList.add("show"));
+  setTimeout(()=>{ t.classList.remove("show"); setTimeout(()=>t.remove(),400); },2600);
+}
+/* confetti (no libraries) */
+const cvs=document.getElementById("confetti"), cctx=cvs.getContext("2d");
+function sizeCvs(){ cvs.width=innerWidth; cvs.height=innerHeight; } sizeCvs(); addEventListener("resize",sizeCvs);
+const CCOL=["#7c3aed","#2563eb","#16a34a","#f59e0b","#ef4444","#ec4899","#06b6d4"];
+let cparts=[], craf=null;
+function confettiBurst(n){
+  for(let i=0;i<n;i++) cparts.push({x:innerWidth/2+(Math.random()-.5)*160,y:110,vx:(Math.random()-.5)*9,vy:Math.random()*-7-2,g:.26,s:6+Math.random()*7,c:CCOL[i%CCOL.length],r:Math.random()*6,vr:(Math.random()-.5)*.5,life:0});
+  if(!craf) cloop();
+}
+function cloop(){
+  cctx.clearRect(0,0,cvs.width,cvs.height);
+  cparts.forEach(p=>{ p.vy+=p.g;p.x+=p.vx;p.y+=p.vy;p.r+=p.vr;p.life++;
+    cctx.save();cctx.translate(p.x,p.y);cctx.rotate(p.r);cctx.fillStyle=p.c;cctx.fillRect(-p.s/2,-p.s/2,p.s,p.s*.6);cctx.restore(); });
+  cparts=cparts.filter(p=>p.y<cvs.height+30 && p.life<300);
+  if(cparts.length) craf=requestAnimationFrame(cloop); else { craf=null; cctx.clearRect(0,0,cvs.width,cvs.height); }
+}
+function sectionComplete(i){
+  const el=document.getElementById("sec_"+i); if(!el) return false;
+  for(const inp of el.querySelectorAll("input[type=text],input[type=number],textarea")){ if(inp.value&&inp.value.trim()) return true; }
+  for(const b of el.querySelectorAll("input[type=checkbox]")){ if(b.checked) return true; }
+  if(el.querySelector(".uploader img")) return true;
+  return false;
+}
+
+/* ---------- Save / restore ---------- */
+function save(){
+  document.querySelectorAll("input[type=text],input[type=number],input[type=color],textarea").forEach(el=>{ if(el.id) data[el.id]=el.value; });
+  document.querySelectorAll("input[type=checkbox]").forEach(el=>{ if(el.id) data[el.id]=el.checked; });
+  try{ localStorage.setItem("founderBlueprint",JSON.stringify(data)); }catch(e){}
+  updateProgress();
+  cloudSave();
+}
+function restore(){
+  let saved={}; try{ saved=JSON.parse(localStorage.getItem("founderBlueprint")||"{}"); }catch(e){}
+  Object.assign(data,saved);
+  populateFields();
+}
+function populateFields(){
+  for(const k in data){
+    const el=document.getElementById(k); if(!el) continue;
+    if(el.type==="checkbox"){ el.checked=!!data[k]; const lab=document.getElementById("chkl_"+k.replace("chk_","")); if(lab) lab.classList.toggle("on",!!data[k]); }
+    else el.value=data[k];
+  }
+  for(const k in data){ if(k.startsWith("img_")){ const id=k.slice(4); const p=document.getElementById("prev_"+id); if(p) p.innerHTML=`<img src="${data[k]}"><div class="hint">Click to change</div>`; } }
+}
+
+/* ---------- Cloud sync (Supabase) ---------- */
+async function cloudLoad(){
+  if(!IDENTITY) return;
+  try{
+    const q=`${SB_URL}/rest/v1/blueprints?class_code=eq.${encodeURIComponent(IDENTITY.class_code)}&student_name=eq.${encodeURIComponent(IDENTITY.student_name)}&select=*`;
+    const r=await fetch(q,{headers:SB_HEADERS});
+    const rows=await r.json();
+    if(Array.isArray(rows)&&rows[0]){
+      Object.assign(data, rows[0].data||{});
+      Object.assign(aiDone, rows[0].ai_done||{});
+      Object.assign(aiOutputs, rows[0].ai_outputs||{});
+    }
+  }catch(e){ /* offline — local cache still works */ }
+}
+let cloudTimer=null;
+function cloudSave(){
+  if(!IDENTITY) return;
+  clearTimeout(cloudTimer);
+  cloudTimer=setTimeout(async()=>{
+    let d=0; sections.forEach((s,i)=>{ if(stepDone(i)) d++; });
+    const progress=Math.round(d/sections.length*100);
+    const payload={ class_code:IDENTITY.class_code, student_name:IDENTITY.student_name, data, ai_done:aiDone, ai_outputs:aiOutputs, progress };
+    try{
+      await fetch(`${SB_URL}/rest/v1/blueprints?on_conflict=class_code,student_name`,{
+        method:"POST",
+        headers:{...SB_HEADERS, "Prefer":"resolution=merge-duplicates,return=minimal"},
+        body:JSON.stringify(payload)
+      });
+    }catch(e){ /* will retry on next change */ }
+  },1200);
+}
+async function startApp(){
+  const cls=(document.getElementById("gClass").value||"").trim().toUpperCase();
+  const nm=(document.getElementById("gName").value||"").trim();
+  if(cls.length<3||nm.length<2){ document.getElementById("gErr").textContent="Please enter a class code and your name."; return; }
+  IDENTITY={class_code:cls, student_name:nm};
+  try{ localStorage.setItem("fb_identity", JSON.stringify(IDENTITY)); }catch(e){}
+  document.getElementById("gErr").textContent="Loading your blueprint…";
+  await cloudLoad();
+  populateFields(); updatePoster(); calcMoney();
+  const fn=document.getElementById("founderName"); if(fn && !fn.value){ fn.value=nm; data.founderName=nm; }
+  lastMilestone=0; let d=0; sections.forEach((s,i)=>{ if(stepDone(i)) d++; }); const p=Math.round(d/sections.length*100); [25,50,75,100].forEach(m=>{ if(p>=m) lastMilestone=m; });
+  booted=true;
+  updateProgress();
+  cloudSave();           // register this student (even at 0%) so the teacher sees them
+  document.getElementById("gate").classList.add("hide");
+}
+function toggleChk(group,i){ const lab=document.getElementById("chkl_"+group+"_"+i); const box=document.getElementById("chk_"+group+"_"+i); lab.classList.toggle("on",box.checked); }
+function handleImg(id,input){
+  const f=input.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=e=>{ const p=document.getElementById("prev_"+id); if(p) p.innerHTML=`<img src="${e.target.result}"><div class="hint">Click to change</div>`; data["img_"+id]=e.target.result;
+    try{localStorage.setItem("founderBlueprint",JSON.stringify(data));}catch(err){alert("Image is large; it may not auto-save on this device, but it will still show and export.");}
+    updatePoster(); updateProgress(); };
+  r.readAsDataURL(f);
+}
+
+/* ---------- Money ---------- */
+function calcMoney(){
+  const m=+(document.getElementById("mMaterials")||{}).value||0;
+  const p=+(document.getElementById("mPackaging")||{}).value||0;
+  const price=+(document.getElementById("mPrice")||{}).value||0;
+  const cost=m+p, profit=price-cost;
+  const box=document.getElementById("moneyCalc"); if(!box) return;
+  box.innerHTML=`Total cost: <b>$${cost.toFixed(2)}</b> &nbsp;·&nbsp; Profit each: <b>$${profit.toFixed(2)}</b> ${profit<0?'⚠️ You\'d lose money — raise your price or cut costs!':''}`;
+  [1,3,5,10,25].forEach(n=>{ const c=document.getElementById("p"+n); if(c) c.textContent="$"+(profit*n).toFixed(2); });
+}
+
+/* ---------- Poster preview ---------- */
+function updatePoster(){
+  const pv=document.getElementById("posterPreview"); if(!pv) return;
+  const color=(document.getElementById("posterColor")||{}).value||"#7c3aed";
+  const head=(document.getElementById("posterHeadline")||{}).value||"Your headline";
+  const price=(document.getElementById("posterPrice")||{}).value||"";
+  const tag=(document.getElementById("posterTag")||{}).value||"Your catchphrase";
+  const img=data.img_posterImg?`<img src="${data.img_posterImg}">`:"";
+  pv.style.background=color;
+  pv.innerHTML=`<h3>${esc(head)}</h3>${img}<div class="tag">${esc(tag)}</div>${price?`<div class="price">${esc(price)}</div>`:""}`;
+}
+function esc(s){return (s+"").replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[c]))}
+
+/* ---------- Booth chat ---------- */
+let boothTurn=0;
+const boothLines=[
+  "Hi there! What are you selling?",
+  "Hmm, why should I buy this instead of something else?",
+  "That sounds a little expensive... is it worth it?",
+  "Cool! Who is this really made for?",
+  "Okay, you convinced me — how much again?"
+];
+function startBooth(){
+  boothTurn=0;
+  const log=document.getElementById("boothLog"); log.innerHTML="";
+  addBubble(boothLines[0],"cust"); boothTurn=1;
+}
+function sendBooth(){
+  const inp=document.getElementById("boothInput"); const msg=(inp.value||"").trim(); if(!msg) return;
+  addBubble(msg,"you"); inp.value=""; markAi("sales");
+  if(AI_ENDPOINT){
+    askBoothAI(msg);
+  }else{
+    setTimeout(()=>{ const line=boothLines[Math.min(boothTurn,boothLines.length-1)]; addBubble(line,"cust"); boothTurn++; },500);
+  }
+}
+async function askBoothAI(msg){
+  try{
+    const res=await fetch(AI_ENDPOINT,{method:"POST",headers:SB_HEADERS,
+      body:JSON.stringify({role:"AI Customer at a booth (kid-friendly, short, a little skeptical)",section:"sales",feedback:false,blueprint:{...data,studentSaid:msg}})});
+    const j=await res.json(); addBubble(j.reply||"...","cust");
+  }catch(e){ addBubble("(couldn't reach AI)","cust"); }
+}
+function addBubble(t,who){ const log=document.getElementById("boothLog"); const d=document.createElement("div"); d.className="bubble "+(who==="cust"?"b-cust":"b-you"); d.textContent=t; log.appendChild(d); log.scrollTop=log.scrollHeight; }
+
+/* ---------- AI ---------- */
+async function askAI(section,role,btn,isFeedback){
+  const box=document.getElementById("ai_"+section);
+  const head=document.getElementById("aihead_"+section);
+  const body=document.getElementById("aibody_"+section);
+  head.textContent="🤖 "+role; box.classList.add("show");
+  body.innerHTML=`<span class="spin"></span> Thinking...`;
+  const ctx=collectContext();
+  if(AI_ENDPOINT){
+    try{
+      const res=await fetch(AI_ENDPOINT,{method:"POST",headers:SB_HEADERS,
+        body:JSON.stringify({role,section,feedback:!!isFeedback,blueprint:ctx})});
+      const j=await res.json(); body.textContent=j.reply||JSON.stringify(j); aiOutputs[section]=body.textContent; markAi(section);
+    }catch(e){ body.textContent="Couldn't reach the AI service. Please try again."; }
+  }else{ await new Promise(r=>setTimeout(r,600)); body.textContent=demoReply(role,section,ctx); aiOutputs[section]=body.textContent; markAi(section); }
+}
+function collectContext(){ save(); return {...data}; }
+function demoReply(role,section,c){
+  const name=c.companyName||"your company", prod=c.productName||"your idea";
+  if(role.includes("Designer")) return `Design feedback for ${name}:\n• Your brand color sets the mood — bright = fun, blue = trustworthy, green = fresh.\n• Keep the logo simple enough to draw by hand.\n• Make sure it still looks good small (like on a sticker).\nTip: pick ONE shape or symbol that connects to what you sell.`;
+  if(role.includes("Slogan")) return `Five slogan ideas for ${prod}:\n• "Made by a kid founder, loved by everyone."\n• "${prod}: small thing, big smile."\n• "Try it once, want it forever."\n• "The fix you didn't know you needed."\n• "Simple. Fun. Yours."`;
+  if(role.includes("Pricing Researcher")) return `Pricing research help:\n• Look up 2–3 similar things and note their prices — that's your range.\n• Your price should be ABOVE your cost (or you lose money).\n• Services: think price-per-hour or price-per-job.\n• Apps: many are free with a $2–5/month "pro" upgrade.\nWhat do similar products near you charge? Start there.`;
+  if(role.includes("Pitch")) return `Your pitch is off to a good start! Make it stronger:\n1. Add ONE exciting detail about ${prod}.\n2. Say the problem it solves out loud.\n3. End with a friendly question. Keep it under 30 seconds!`;
+  if(section==="competition") return `Competition check:\n• Good start — but be specific. "Cheaper" isn't enough; WHY is it cheaper or better?\n• Name a real product or app people use now.\n• Finish this: "Unlike ____, mine ____." \nTip: search your idea in the App Store or Google to see who else is out there.`;
+  if(section==="money") return `Money check:\n• Make sure your price is higher than your cost.\n• Which model fits? A product = one-time sale; an app = subscription or freemium.\n• Round to an easy number ($5, not $4.87).\n• Try: how much profit if 10 people buy?`;
+  if(section==="customer") return `Customer feedback:\n• You're clearer when you name the exact problem and who has it.\n• Ask: what would this person say to a friend about your idea?\n• The tighter your customer, the easier everything else gets.`;
+  if(section==="next") return `Next steps for ${name}:\n1. Make one real sample and show 3 people.\n2. Use their feedback to fix the biggest weak spot.\n3. Practice your pitch out loud 5 times.\n4. Set a mini goal: sell your first 5!`;
+  return `Feedback on ${prod}: solid start! Be more specific — name the exact customer and the exact problem, and add one detail that makes it stand out. Great work, founder!`;
+}
+
+/* ---------- Export: compact designed business plan ---------- */
+function val(id){return ((document.getElementById(id)||{}).value||"").trim();}
+function checkedLabels(group){ const out=[]; document.querySelectorAll('[id^="chk_'+group+'_"]').forEach(cb=>{ if(cb.checked){ const lab=cb.closest('label'); if(lab) out.push(lab.textContent.trim()); } }); return out; }
+
+function exportPDF(){
+  save();
+  const company=val("companyName")||"My Company";
+  const founder=val("founderName")||val("founder2");
+  const mission=(val("mission_who")||val("mission_how"))?`We help <b>${esc(val("mission_who")||"…")}</b> by <b>${esc(val("mission_how")||"…")}</b>.`:"";
+  const kind=checkedLabels("kind").join(" · ");
+  const feats=checkedLabels("feat"); if(val("featOther")) feats.push(val("featOther"));
+  const needs=checkedLabels("need"); if(val("needOther")) needs.push(val("needOther"));
+  const models=checkedLabels("model");
+  const cost=(+val("mMaterials")||0)+(+val("mPackaging")||0);
+  const price=+val("mPrice")||0; const profit=price-cost;
+  const pitch=`Hi! I'm ${esc(val("pitch1")||"___")}. I created ${esc(val("pitch2")||"___")}. It's perfect for ${esc(val("pitch3")||"___")}. It solves ${esc(val("pitch4")||"___")}. Today it's only $${esc(val("pitch5")||"__")}. Would you like to check it out?`;
+  const acts=checkedLabels("nextacts");
+  const logo=data.img_logo?`<img class="logo-img" src="${data.img_logo}">`:"";
+  const brandColor=val("brandColor")||"#2563eb";
+
+  const card=(title,body)=> body ? `<div class="c"><h4>${title}</h4>${body}</div>` : "";
+  const chips=(arr)=> arr.length?`<div class="chips">${arr.map(x=>`<span>${esc(x)}</span>`).join("")}</div>`:"";
+  const line=(label,v)=> v?`<p><span class="lb">${label}:</span> ${esc(v)}</p>`:"";
+
+  const posterImg=data.img_posterImg?`<img src="${data.img_posterImg}">`:"";
+  const poster=(val("posterHeadline")||val("slogan")||data.img_posterImg)?`
+    <div class="poster" style="background:${val("posterColor")||"#7c3aed"}">
+      <div class="ph">${esc(val("posterHeadline")||company)}</div>${posterImg}
+      <div class="pt">${esc(val("posterTag")||val("slogan"))}</div>
+      ${val("posterPrice")?`<div class="pp">${esc(val("posterPrice"))}</div>`:""}
+    </div>`:"";
+
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${esc(company)} — Business Plan</title>
+  <style>
+    @page{size:letter;margin:0.5in}
+    *{box-sizing:border-box}
+    body{font-family:'Segoe UI',Arial,sans-serif;color:#1f2733;margin:0;font-size:11.5px;line-height:1.4}
+    .top{display:flex;align-items:center;gap:14px;border-bottom:4px solid ${brandColor};padding-bottom:10px;margin-bottom:12px}
+    .logo-img{width:64px;height:64px;object-fit:contain;border:1px solid #e4e9f2;border-radius:10px;padding:3px}
+    .top h1{margin:0;font-size:26px;color:${brandColor}}
+    .top .meta{color:#6b7688;font-size:12px;margin-top:2px}
+    .badge{margin-left:auto;background:${brandColor};color:#fff;font-weight:700;font-size:11px;padding:5px 12px;border-radius:20px}
+    .mission{background:#f4f7fb;border-left:5px solid ${brandColor};padding:10px 14px;border-radius:8px;font-size:15px;margin-bottom:12px}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+    .c{border:1px solid #e4e9f2;border-radius:10px;padding:11px 13px;break-inside:avoid}
+    .c.wide{grid-column:1 / -1}
+    h4{margin:0 0 6px;font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:${brandColor}}
+    p{margin:4px 0}
+    .lb{font-weight:700;color:#334}
+    .chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:5px}
+    .chips span{background:#eef2ff;color:#334;border-radius:14px;padding:2px 9px;font-size:10.5px}
+    .money{display:flex;gap:10px;margin-top:6px}
+    .money div{flex:1;text-align:center;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:7px}
+    .money b{display:block;font-size:16px;color:#16a34a}
+    .money small{color:#6b7688}
+    .pitch{font-style:italic;background:#faf7ff;border:1px solid #e6ddfb;border-radius:8px;padding:10px 12px}
+    .poster{color:#fff;border-radius:10px;padding:14px;text-align:center;max-width:230px}
+    .poster .ph{font-size:18px;font-weight:800;line-height:1.1}
+    .poster img{max-width:110px;max-height:90px;background:#fff;border-radius:6px;padding:3px;margin:6px auto;display:block}
+    .poster .pt{font-style:italic;font-size:12px;margin-top:4px}
+    .poster .pp{font-size:20px;font-weight:800;margin-top:4px}
+    .mk{display:flex;gap:14px;align-items:flex-start}
+  </style></head><body onload="window.print()">
+    <div class="top">${logo}<div><h1>${esc(company)}</h1><div class="meta">${founder?"Founder: "+esc(founder)+" · ":""}Founder Blueprint Business Plan</div></div><div class="badge">BUSINESS PLAN</div></div>
+    ${mission?`<div class="mission">${mission}</div>`:""}
+    <div class="grid">
+      ${card("The Idea",(val("productName")?`<p><b>${esc(val("productName"))}</b>${kind?` — ${esc(kind)}`:""}</p>`:"")+(val("productDesc")?`<p>${esc(val("productDesc"))}</p>`:"")+chips(feats))}
+      ${card("The Customer",line("Problem",val("custProblem"))+line("Who",val("custAgeGroup"))+line("Needs",val("custNeeds"))+chips(needs))}
+      ${card("Our Edge",line("They could use instead",val("compAlt"))+line("Why we're different",val("compBetter")))}
+      ${card("The Money",(models.length?chips(models):"")+`<div class="money"><div><b>$${price.toFixed(2)}</b><small>price</small></div><div><b>$${cost.toFixed(2)}</b><small>cost</small></div><div><b>$${profit.toFixed(2)}</b><small>profit each</small></div><div><b>$${(profit*10).toFixed(2)}</b><small>if 10 sell</small></div></div>`)}
+      ${(val("slogan")||poster)?`<div class="c wide"><h4>Marketing</h4><div class="mk"><div style="flex:1">${val("slogan")?`<p style="font-size:15px"><b>"${esc(val("slogan"))}"</b></p>`:""}</div>${poster}</div></div>`:""}
+      ${card("The Pitch",`<div class="pitch">${pitch}</div>`)}
+      ${card("Next Steps",line("First improvement",val("nextImprove"))+line("Grow by",val("nextGrow"))+line("1-month goal",val("nextGoal"))+chips(acts))}
+    </div>
+  </body></html>`;
+
+  const w=window.open("","_blank");
+  if(!w){ alert("Please allow pop-ups to export your business plan."); return; }
+  w.document.write(html); w.document.close();
+}
+
+/* ---------- Init ---------- */
+try{ Object.assign(aiDone, JSON.parse(localStorage.getItem("fbAiDone")||"{}")); }catch(e){}
+renderAll();
+calcMoney();
+// prefill the start screen if we've seen this student on this device before
+try{ const id=JSON.parse(localStorage.getItem("fb_identity")||"null"); if(id){ document.getElementById("gClass").value=id.class_code||""; document.getElementById("gName").value=id.student_name||""; } }catch(e){}
+document.getElementById("demoFlag").style.display="none"; // real AI is wired via Supabase
+// (booted stays false until the student passes the start screen)
+
+/* ====================================================================
+   SETUP NOTES (for the teacher — see README.md for full steps)
+   --------------------------------------------------------------------
+   • Backend: Supabase project "Founder-Blueprint". Student work saves to
+     the `blueprints` table; AI runs through the `ai` Edge Function.
+   • ONE REMAINING STEP to switch AI on: add your Anthropic API key as a
+     Supabase secret named ANTHROPIC_API_KEY (Project → Edge Functions →
+     Secrets, or: supabase secrets set ANTHROPIC_API_KEY=sk-ant-...).
+     Until then the AI politely says it isn't switched on yet.
+   • Set a monthly spending limit in your Anthropic console.
+   • Teacher view: open dashboard.html to see every student's progress.
+   ==================================================================== */
+</script>
+</body>
+</html>
