@@ -100,6 +100,28 @@
   .modal .big{font-size:60px;line-height:1}
   .modal h2{font-family:'Fredoka',sans-serif;font-size:30px;margin:12px 0 6px}
   .modal p{color:var(--muted);font-size:16px;margin:0 0 4px}
+  /* tiers + team rows */
+  .tier-row{display:flex;gap:8px;margin-top:8px}
+  .tier-row input[type=text]{flex:2}
+  .tier-row input[type=number]{flex:1;max-width:130px}
+  .navhint{color:var(--muted);font-size:13px;font-weight:700;text-align:center;flex:1}
+  .btn.big{font-size:16px;padding:13px 20px}
+  /* finish step */
+  .finishbar{height:22px;background:#eef2f8;border-radius:20px;overflow:hidden;box-shadow:inset 0 1px 3px rgba(0,0,0,.08)}
+  .finishbar > i{display:block;height:100%;width:0;background:linear-gradient(90deg,#2563eb,#7c3aed,#16a34a);transition:width .5s}
+  .finishpct{font-family:'Fredoka',sans-serif;font-weight:600;font-size:20px;color:var(--brand2);margin:8px 0 2px;text-align:center}
+  /* report preview */
+  .report-ov{position:fixed;inset:0;z-index:15000;background:#e9edf5;overflow:auto;padding:22px;display:none}
+  .report-ov.show{display:block}
+  .report-actions{max-width:760px;margin:0 auto 14px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+  .report-doc{max-width:760px;margin:0 auto;background:#fff;border-radius:14px;box-shadow:0 12px 44px rgba(20,30,60,.16);padding:46px 50px}
+  .report-doc .rhead{border-bottom:4px solid var(--brand);padding-bottom:14px;margin-bottom:20px;display:flex;align-items:center;gap:16px}
+  .report-doc .rhead img{width:70px;height:70px;object-fit:contain;border:1px solid var(--line);border-radius:10px;padding:3px}
+  .report-doc h1{font-family:'Fredoka',sans-serif;font-size:30px;margin:0;color:var(--brand)}
+  .report-doc .rmeta{color:var(--muted);font-size:14px;margin-top:3px}
+  .report-doc h3{font-family:'Fredoka',sans-serif;font-size:17px;color:var(--brand2);margin:20px 0 4px;text-transform:uppercase;letter-spacing:.03em}
+  .report-doc p.body{font-size:15.5px;line-height:1.6;margin:0}
+  .report-doc .rposter{max-width:230px;border-radius:10px;margin-top:12px}
   /* polish review */
   .pintro{color:var(--muted);font-size:14px;margin:2px 0 6px}
   .pdiff{border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-top:12px}
@@ -121,9 +143,11 @@
   .gate-tip{color:#9aa4b5;font-size:12px;margin:14px 0 0}
   .gate-err{color:#dc2626;font-size:13px;font-weight:700;min-height:18px;margin-top:8px}
   @media print{
-    header,.nav,.ai-actions,.btn,.uploader .hint{display:none!important}
-    .section{display:block!important;box-shadow:none;page-break-inside:avoid;margin-bottom:16px;border-color:#ccc}
-    .ai-box{display:block!important}
+    header,.nav,.demo-flag,#gate,.modal,main{display:none!important}
+    .no-print{display:none!important}
+    #reportPreview{position:static;display:block!important;background:#fff;padding:0;overflow:visible}
+    .report-doc{box-shadow:none;border-radius:0;max-width:none;margin:0;padding:0}
+    .report-doc h3{page-break-after:avoid}
     body{background:#fff}
   }
 </style>
@@ -166,14 +190,24 @@
 <div class="modal" id="doneModal"><div class="box"><div class="big">🎉</div><h2 id="doneTitle">You did it!</h2><p id="doneMsg"></p><button class="btn btn-ai" style="margin-top:18px" onclick="document.getElementById('doneModal').classList.remove('show')">Let's launch! 🚀</button></div></div>
 <div class="modal" id="polishModal"><div class="box" id="polishBox" style="max-width:640px;text-align:left;max-height:82vh;overflow:auto"></div></div>
 
+<div id="reportPreview" class="report-ov">
+  <div class="report-actions no-print">
+    <button class="btn btn-ghost" onclick="closeReport()">← Back to edit</button>
+    <span style="font-weight:800;color:#6b7688">Preview your business plan</span>
+    <button class="btn btn-ai" onclick="window.print()">💾 Save / Print</button>
+  </div>
+  <div id="reportDoc" class="report-doc"></div>
+  <div class="report-actions no-print" style="margin-top:14px">
+    <span></span>
+    <button class="btn btn-ai" onclick="window.print()">💾 Save / Print</button>
+  </div>
+</div>
+
 <main id="main"></main>
 
 <div class="nav">
   <button class="btn btn-ghost" id="prevBtn" onclick="go(-1)">← Back</button>
-  <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center">
-    <button class="btn btn-ai" id="polishBtn" onclick="polishPlan()">✨ Polish &amp; Export Plan</button>
-    <button class="btn btn-ghost" id="exportBtn" onclick="exportPDF()">Export as-is</button>
-  </div>
+  <span id="navHint" class="navhint"></span>
   <button class="btn btn-primary" id="nextBtn" onclick="go(1)">Next →</button>
 </div>
 
@@ -274,6 +308,7 @@ const sections = [
       ["Service fee","Charge per job, hour, or visit. (dog-walking, tutoring)"],
       ["Pay what you want","Customers choose a fair price."],
     ])}
+    ${tiersBlock()}
     <div class="hintbox">Making a <b>service</b> or <b>app</b>? Your "cost" might be your time, not materials — think about what you'd charge per customer or per month.</div>
     <div class="row">
       <div><label class="f">Cost to make one / your cost ($)</label><input type="number" id="mMaterials" oninput="calcMoney();save()" min="0" step="0.01"></div>
@@ -284,6 +319,7 @@ const sections = [
     <label class="f">If you sell / sign up...</label>
     <table class="money-table"><thead><tr><th>Customers</th><th>1</th><th>3</th><th>5</th><th>10</th><th>25</th></tr></thead>
     <tbody><tr><td><b>Profit</b></td><td id="p1">–</td><td id="p3">–</td><td id="p5">–</td><td id="p10">–</td><td id="p25">–</td></tr></tbody></table>
+    ${employeesBlock()}
     ${aiPanel("money","AI Consultant")}
     <div class="ai-actions">
       ${aiBtn("money","AI Pricing Researcher","Ask AI to research pricing",false)}
@@ -356,6 +392,17 @@ const sections = [
     ${aiPanel("next","AI Consultant")}
     <div class="ai-actions">${aiBtn("next","AI Consultant","Ask AI Consultant — what are my best next steps?",true)}</div>
   `},
+
+  // 12 Finish & Export (the last step)
+  { id:"finish", title:"Finish & Launch! 🎉", sub:"Turn everything into your polished business plan.", render:()=>`
+    <div class="finishbar"><i id="finishBar"></i></div>
+    <p class="finishpct" id="finishPct">0% complete</p>
+    <p class="sub" id="finishMsg">When you're ready, create your final plan. The AI will fix spelling and grammar and write it up in full sentences — in your own voice. Then you can preview the whole thing and save it.</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
+      <button class="btn btn-ai big" id="makeReportBtn" onclick="makeReport()">✨ Create My Polished Business Plan</button>
+      <button class="btn btn-ghost" onclick="exportPDF()">Quick export (no polish)</button>
+    </div>
+  `},
 ];
 
 /* ---------- Field builders ---------- */
@@ -383,6 +430,8 @@ function renderAll(){
     </div>`).join("");
   restore();
   updatePoster();
+  updateTiers();
+  calcEmp();
   updateProgress();
 }
 function go(dir){
@@ -420,6 +469,7 @@ const stepReq={
   checklist:{groups:["launch"],ai:false},
   next:{fields:["nextImprove","nextGoal"],ai:true},
 };
+const CONTENT_COUNT=Object.keys(stepReq).length; // steps that count toward 100% (excludes the Finish step)
 function fieldFilled(id){ const el=document.getElementById(id); return !!(el && (el.value||"").trim()); }
 function stepDone(i){
   const id=sections[i].id, req=stepReq[id]; if(!req) return false;
@@ -434,9 +484,11 @@ function updateProgress(){
   document.getElementById("stepLabel").textContent=`Step ${current+1} of ${sections.length}`;
   let done=0; const nowDone=new Set();
   sections.forEach((s,i)=>{ if(stepDone(i)){done++;nowDone.add(i);} });
-  const pct=Math.round(done/sections.length*100);
+  const pct=Math.round(done/CONTENT_COUNT*100);
   document.getElementById("pbar").style.width=pct+"%";
   document.getElementById("pctLabel").textContent=pct+"% complete";
+  const fb=document.getElementById("finishBar"); if(fb) fb.style.width=pct+"%";
+  const fp=document.getElementById("finishPct"); if(fp) fp.textContent=pct+"% complete";
   document.getElementById("pointsLbl").innerHTML=(done*100)+` <small>Founder Points</small>`;
   const chip=document.getElementById("rankChip"); const nr=rankFor(pct);
   if(chip.textContent!==nr){ chip.textContent=nr; if(booted){ chip.classList.add("bump"); setTimeout(()=>chip.classList.remove("bump"),260);} }
@@ -509,6 +561,7 @@ function save(){
   document.querySelectorAll("input[type=checkbox]").forEach(el=>{ if(el.id) data[el.id]=el.checked; });
   try{ localStorage.setItem("founderBlueprint",JSON.stringify(data)); }catch(e){}
   updateProgress();
+  updateTiers();
   cloudSave();
 }
 function restore(){
@@ -564,7 +617,7 @@ async function startApp(){
   try{ localStorage.setItem("fb_identity", JSON.stringify(IDENTITY)); }catch(e){}
   document.getElementById("gErr").textContent="Loading your blueprint…";
   await cloudLoad();
-  populateFields(); updatePoster(); calcMoney();
+  populateFields(); updatePoster(); calcMoney(); updateTiers(); calcEmp();
   const fn=document.getElementById("founderName"); if(fn && !fn.value){ fn.value=nm; data.founderName=nm; }
   lastMilestone=0; let d=0; sections.forEach((s,i)=>{ if(stepDone(i)) d++; }); const p=Math.round(d/sections.length*100); [25,50,75,100].forEach(m=>{ if(p>=m) lastMilestone=m; });
   booted=true;
@@ -731,6 +784,9 @@ function exportPDF(){
   const feats=checkedLabels("feat"); if(val("featOther")) feats.push(val("featOther"));
   const needs=checkedLabels("need"); if(val("needOther")) needs.push(val("needOther"));
   const models=checkedLabels("model");
+  const tiersArr=getTiers(), teamArr=getEmployees();
+  const tiersHTML=tiersArr.length?`<p style="margin-top:6px"><b>Subscription tiers:</b> ${tiersArr.map(t=>esc(t.name)+(t.price?` — $${esc(t.price)}/mo`:"")).join("; ")}</p>`:"";
+  const teamHTML=teamArr.length?`<p><b>Team &amp; pay:</b> ${teamArr.map(e=>esc(e.role)+(e.pay?` — $${esc(e.pay)}`:"")).join("; ")}</p>`:"";
   const cost=(+val("mMaterials")||0)+(+val("mPackaging")||0);
   const price=+val("mPrice")||0; const profit=price-cost;
   const pitch=`Hi! I'm ${esc(val("pitch1")||"___")}. I created ${esc(val("pitch2")||"___")}. It's perfect for ${esc(val("pitch3")||"___")}. It solves ${esc(val("pitch4")||"___")}. Today it's only $${esc(val("pitch5")||"__")}. Would you like to check it out?`;
@@ -787,7 +843,7 @@ function exportPDF(){
       ${card("The Idea",(val("productName")?`<p><b>${esc(val("productName"))}</b>${kind?` — ${esc(kind)}`:""}</p>`:"")+(pv("productDesc")?`<p>${esc(pv("productDesc"))}</p>`:"")+chips(feats))}
       ${card("The Customer",line("Problem",pv("custProblem"))+line("Who",val("custAgeGroup"))+line("Needs",pv("custNeeds"))+chips(needs))}
       ${card("Our Edge",line("They could use instead",pv("compAlt"))+line("Why we're different",pv("compBetter")))}
-      ${card("The Money",(models.length?chips(models):"")+`<div class="money"><div><b>$${price.toFixed(2)}</b><small>price</small></div><div><b>$${cost.toFixed(2)}</b><small>cost</small></div><div><b>$${profit.toFixed(2)}</b><small>profit each</small></div><div><b>$${(profit*10).toFixed(2)}</b><small>if 10 sell</small></div></div>`)}
+      ${card("The Money",(models.length?chips(models):"")+tiersHTML+teamHTML+`<div class="money"><div><b>$${price.toFixed(2)}</b><small>price</small></div><div><b>$${cost.toFixed(2)}</b><small>cost</small></div><div><b>$${profit.toFixed(2)}</b><small>profit each</small></div><div><b>$${(profit*10).toFixed(2)}</b><small>if 10 sell</small></div></div>`)}
       ${(pv("slogan")||poster)?`<div class="c wide"><h4>Marketing</h4><div class="mk"><div style="flex:1">${pv("slogan")?`<p style="font-size:15px"><b>"${esc(pv("slogan"))}"</b></p>`:""}</div>${poster}</div></div>`:""}
       ${card("The Pitch",`<div class="pitch">${pitch}</div>`)}
       ${card("Next Steps",line("First improvement",pv("nextImprove"))+line("Grow by",pv("nextGrow"))+line("1-month goal",val("nextGoal"))+chips(acts))}
@@ -798,6 +854,111 @@ function exportPDF(){
   if(!w){ alert("Please allow pop-ups to export your business plan."); return; }
   w.document.write(html); w.document.close();
 }
+
+/* ---------- Subscription tiers ---------- */
+function tiersBlock(){
+  return `<div id="tiersWrap" style="display:none">
+    <label class="f">Your subscription tiers (name + monthly price)</label>
+    <div class="hintbox" style="margin-top:0">Lots of apps offer a few choices — like a cheaper <b>Basic</b> and a fancier <b>Pro</b>. List yours here.</div>
+    <div id="tierRows">${tierRow(1,"Basic")}${tierRow(2,"Plus")}${tierRow(3,"Pro")}${tierRow(4,"")}${tierRow(5,"")}</div>
+    <button class="btn btn-ghost" type="button" id="addTierBtn" onclick="addTier()" style="margin-top:8px">+ Add another tier</button>
+  </div>`;
+}
+function tierRow(i,ph){ return `<div class="tier-row" id="tierRow_${i}"${i>3?' style="display:none"':''}>
+  <input type="text" id="tierName_${i}" placeholder="Tier name${ph?' (e.g. '+ph+')':''}" oninput="save()">
+  <input type="number" id="tierPrice_${i}" placeholder="$ / month" min="0" step="0.01" oninput="save()"></div>`; }
+function addTier(){ for(let i=4;i<=5;i++){ const r=document.getElementById("tierRow_"+i); if(r && r.style.display==="none"){ r.style.display="flex"; if(i===5){const b=document.getElementById("addTierBtn"); if(b)b.style.display="none";} return; } } }
+function updateTiers(){ const w=document.getElementById("tiersWrap"); if(!w) return; const sub=document.getElementById("chk_model_1"); w.style.display=(sub&&sub.checked)?"block":"none"; }
+function getTiers(){ const out=[]; for(let i=1;i<=5;i++){ const n=(val("tierName_"+i)||"").trim(); const p=(val("tierPrice_"+i)||"").trim(); if(n) out.push({name:n,price:p}); } return out; }
+
+/* ---------- Team & salaries ---------- */
+function employeesBlock(){
+  return `<label class="f" style="margin-top:20px">Your team &amp; pay (optional)</label>
+    <div class="hintbox" style="margin-top:0">Will you pay anyone to help? List them and what you'd pay each — it's part of your costs!</div>
+    <div id="empRows">${empRow(1)}${empRow(2)}${empRow(3)}${empRow(4)}</div>
+    <button class="btn btn-ghost" type="button" id="addEmpBtn" onclick="addEmp()" style="margin-top:8px">+ Add team member</button>
+    <div class="calc" id="empTotal" style="display:none"></div>`;
+}
+function empRow(i){ return `<div class="tier-row" id="empRow_${i}"${i>1?' style="display:none"':''}>
+  <input type="text" id="empRole_${i}" placeholder="Role or name (e.g. Designer)" oninput="save()">
+  <input type="number" id="empPay_${i}" placeholder="$ pay" min="0" step="0.01" oninput="calcEmp();save()"></div>`; }
+function addEmp(){ for(let i=2;i<=4;i++){ const r=document.getElementById("empRow_"+i); if(r && r.style.display==="none"){ r.style.display="flex"; if(i===4){const b=document.getElementById("addEmpBtn"); if(b)b.style.display="none";} return; } } }
+function getEmployees(){ const out=[]; for(let i=1;i<=4;i++){ const role=(val("empRole_"+i)||"").trim(); const pay=(val("empPay_"+i)||"").trim(); if(role) out.push({role,pay}); } return out; }
+function calcEmp(){ const box=document.getElementById("empTotal"); if(!box) return; let t=0,any=false; for(let i=1;i<=4;i++){ const role=(val("empRole_"+i)||"").trim(); if(role) any=true; t+=(+(val("empPay_"+i)||0)); } if(any){ box.style.display="block"; box.innerHTML=`Total team pay: <b>$${t.toFixed(2)}</b> — remember this comes out of your profit.`; } else box.style.display="none"; }
+
+/* ---------- Final report (complete sentences, spell/grammar, voice) ---------- */
+let reportData=null;
+function reportInput(){
+  const g=(grp)=>checkedLabels(grp).join(", ");
+  const tiers=getTiers().map(t=>t.name+(t.price?` ($${t.price}/mo)`:"")).join(", ");
+  const team=getEmployees().map(e=>e.role+(e.pay?` ($${e.pay})`:"")).join(", ");
+  return {
+    companyName:val("companyName"), founder:val("founderName")||val("founder2"),
+    mission:(val("mission_who")||val("mission_how"))?`We help ${val("mission_who")} by ${val("mission_how")}`:"",
+    productName:val("productName"), productType:g("kind"), productDescription:val("productDesc"),
+    features:[g("feat"),val("featOther")].filter(Boolean).join(", "),
+    customerProblem:val("custProblem"), customerAgeGroup:val("custAgeGroup"),
+    customerNeeds:[val("custNeeds"),val("needOther")].filter(Boolean).join(", "),
+    competitors:val("compAlt"), whatMakesUsDifferent:val("compBetter"),
+    revenueModel:g("model"), subscriptionTiers:tiers, teamAndPay:team,
+    costToMake:val("mMaterials"), extraCosts:val("mPackaging"), price:val("mPrice"),
+    slogan:val("slogan"),
+    pitch:`Hi! I'm ${val("pitch1")}. I created ${val("pitch2")}. It's perfect for ${val("pitch3")}. It solves ${val("pitch4")}. Today it's only $${val("pitch5")}.`,
+    nextImprovement:val("nextImprove"), howItGrows:val("nextGrow"), oneMonthGoal:val("nextGoal"), nextActions:g("nextacts")
+  };
+}
+async function makeReport(){
+  save();
+  const btn=document.getElementById("makeReportBtn"); const old=btn?btn.innerHTML:"";
+  if(btn){ btn.disabled=true; btn.innerHTML='<span class="spin"></span> Writing your plan…'; }
+  const input=reportInput();
+  let report=null;
+  try{
+    const res=await fetch(AI_ENDPOINT,{method:"POST",headers:SB_HEADERS,body:JSON.stringify({mode:"report",blueprint:input})});
+    const j=await res.json();
+    if(j.report && typeof j.report==="object" && Object.keys(j.report).length) report=j.report;
+  }catch(e){}
+  if(!report) report=fallbackReport(input);
+  reportData=report;
+  if(btn){ btn.disabled=false; btn.innerHTML=old; }
+  renderReportPreview(input);
+  if(typeof confettiBurst==="function") confettiBurst(60);
+}
+function fallbackReport(x){
+  const cap=s=>s?(s.charAt(0).toUpperCase()+s.slice(1)):s;
+  return {
+    overview: x.mission?cap(x.mission)+".":(x.companyName?`${x.companyName} is our new business.`:""),
+    product: x.productName?`Our ${x.productType||"product"} is called ${x.productName}. ${x.productDescription||""}`.trim():(x.productDescription||""),
+    customer: x.customerProblem?`Our customers are ${x.customerAgeGroup||"people"} who ${x.customerProblem}. They need ${x.customerNeeds||"help"}.`:"",
+    competition: x.competitors?`People could also use ${x.competitors}. Our business is different because ${x.whatMakesUsDifferent||"we care more"}.`:"",
+    money: x.revenueModel?`We make money with ${x.revenueModel}.${x.subscriptionTiers?` Our subscription tiers are ${x.subscriptionTiers}.`:""}${x.price?` Our price is $${x.price}.`:""}${x.teamAndPay?` Our team includes ${x.teamAndPay}.`:""}`:"",
+    marketing: x.slogan?`Our slogan is "${x.slogan}."`:"",
+    pitch: x.pitch||"",
+    nextsteps: [x.nextImprovement&&`First, we will ${x.nextImprovement}.`, x.howItGrows&&`We can grow by ${x.howItGrows}.`, x.oneMonthGoal&&`Our goal for next month is ${x.oneMonthGoal}.`].filter(Boolean).join(" ")
+  };
+}
+function renderReportPreview(x){
+  x=x||reportInput();
+  const r=reportData||{};
+  const logo=data.img_logo?`<img src="${data.img_logo}">`:"";
+  const company=val("companyName")||"My Company";
+  const founder=val("founderName")||val("founder2");
+  const poster=data.img_posterImg?`<img class="rposter" src="${data.img_posterImg}">`:"";
+  const sec=(title,txt,extra)=> ((txt&&txt.trim())||extra)?`<h3>${title}</h3>${(txt&&txt.trim())?`<p class="body">${esc(txt)}</p>`:""}${extra||""}`:"";
+  document.getElementById("reportDoc").innerHTML=`
+    <div class="rhead">${logo}<div><h1>${esc(company)}</h1><div class="rmeta">${founder?"Founder: "+esc(founder)+" · ":""}Business Plan</div></div></div>
+    ${sec("Overview", r.overview)}
+    ${sec("Our Product / Service", r.product)}
+    ${sec("Our Customer", r.customer)}
+    ${sec("Our Competition", r.competition)}
+    ${sec("How We Make Money", r.money)}
+    ${sec("Marketing", r.marketing, poster)}
+    ${sec("Our Pitch", r.pitch)}
+    ${sec("Next Steps", r.nextsteps)}`;
+  document.getElementById("reportPreview").classList.add("show");
+  window.scrollTo(0,0);
+}
+function closeReport(){ document.getElementById("reportPreview").classList.remove("show"); }
 
 /* ---------- Init ---------- */
 try{ Object.assign(aiDone, JSON.parse(localStorage.getItem("fbAiDone")||"{}")); }catch(e){}
