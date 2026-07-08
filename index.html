@@ -103,9 +103,9 @@
   /* tiers + team rows */
   .fieldnote{color:var(--muted);font-size:12px;margin-top:4px;line-height:1.35}
   .tier-be{color:var(--good);font-weight:700;font-size:12.5px;margin:3px 0 4px 2px;min-height:14px}
-  .tier-row{display:flex;gap:8px;margin-top:8px}
-  .tier-row input[type=text]{flex:2}
-  .tier-row input[type=number]{flex:1;max-width:130px}
+  .tier-row{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+  .tier-row input[type=text]{flex:2;min-width:150px}
+  .tier-row input[type=number]{flex:1;min-width:110px}
   .navhint{color:var(--muted);font-size:13px;font-weight:700;text-align:center;flex:1}
   .btn.big{font-size:16px;padding:13px 20px}
   /* finish step */
@@ -311,18 +311,18 @@ const sections = [
       ["Pay what you want","Customers choose a fair price."],
     ])}
     ${tiersBlock()}
-    <div class="hintbox">There are <b>two</b> kinds of cost. A <b>one-time</b> cost you pay only ONCE to get started (like building your app), and a <b>per-customer</b> cost you pay for each sale (like materials). Apps usually have a big one-time cost and almost no per-customer cost.</div>
+    <div class="hintbox">There are <b>two</b> kinds of cost: a <b>one-time</b> startup cost you pay ONCE (like building your app), and a small <b>per-customer</b> cost for each sale (like materials — often $0 for an app).</div>
     <div class="row">
-      <div><label class="f">One-time startup cost ($)</label><input type="number" id="mFixed" oninput="calcMoney();save()" min="0" step="0.01"><div class="fieldnote">Paid ONCE — building the app, tools, or your first supplies.</div></div>
-      <div><label class="f">Cost for each customer / item ($)</label><input type="number" id="mVar" oninput="calcMoney();save()" min="0" step="0.01"><div class="fieldnote">Per sale — materials, packaging. Often $0 for an app.</div></div>
-      <div><label class="f">Price ONE customer pays ($)</label><input type="number" id="mPrice" oninput="calcMoney();save()" min="0" step="0.01"><div class="fieldnote">Per month if it's a subscription, or per sale if it's a one-time buy.</div></div>
+      <div><label class="f">One-time startup cost ($)</label><input type="number" id="mFixed" oninput="calcMoney();save()" min="0" step="0.01"><div class="fieldnote">Paid ONCE — building the app, tools, or first supplies.</div></div>
+      <div><label class="f">Cost for each customer / item ($)</label><input type="number" id="mVar" oninput="calcMoney();save()" min="0" step="0.01"><div class="fieldnote">Per sale — materials or packaging. Often $0 for an app.</div></div>
     </div>
-    <div class="calc" id="moneyCalc">Fill in your numbers to see your profit.</div>
-    <label class="f">Your total profit after this many customers:</label>
-    <table class="money-table"><thead><tr><th>Customers</th><th>1</th><th>5</th><th>10</th><th>25</th><th>50</th></tr></thead>
-    <tbody><tr><td><b>Profit</b></td><td id="p1">–</td><td id="p5">–</td><td id="p10">–</td><td id="p25">–</td><td id="p50">–</td></tr></tbody></table>
-    <p class="fieldnote">Your one-time startup cost is only subtracted once — it doesn't add up again for every new customer.</p>
+    <div id="priceWrap" class="row">
+      <div><label class="f" id="priceLbl">Price per sale ($)</label><input type="number" id="mPrice" oninput="calcMoney();save()" min="0" step="0.01"><div class="fieldnote" id="priceNote">What one customer pays each time they buy.</div></div>
+      <div><label class="f" id="custLbl">How many will you sell?</label><input type="number" id="mCust" oninput="calcMoney();save()" min="0" step="1"><div class="fieldnote" id="custNote">Your best guess is fine.</div></div>
+    </div>
     ${employeesBlock()}
+    <label class="f" style="margin-top:18px">Your cost analysis</label>
+    <div class="calc" id="moneyCalc">Fill in your numbers above to see your cost analysis.</div>
     ${aiPanel("money","AI Consultant")}
     <div class="ai-actions">
       ${aiBtn("money","AI Pricing Researcher","Ask AI to research pricing",false)}
@@ -639,33 +639,71 @@ function handleImg(id,input){
 }
 
 /* ---------- Money ---------- */
-function calcMoney(){
-  const fixed=+(document.getElementById("mFixed")||{}).value||0;   // one-time startup cost
-  const varc =+(document.getElementById("mVar")||{}).value||0;     // cost per customer/item
-  const price=+(document.getElementById("mPrice")||{}).value||0;   // price one customer pays
-  const per=price-varc;                                            // profit from each customer
-  const box=document.getElementById("moneyCalc");
-  if(box){
-    let msg;
-    if(per<=0 && price>0){ msg=`⚠️ Each customer's price ($${price.toFixed(2)}) is not more than the cost each ($${varc.toFixed(2)}). Raise your price!`; }
-    else{
-      msg=`Each customer earns you <b>$${per.toFixed(2)}</b> profit (price − cost each).`;
-      if(fixed>0 && per>0){ const be=Math.ceil(fixed/per); msg+=` You pay back your <b>$${fixed.toFixed(2)}</b> one-time cost after <b>${be}</b> customer${be===1?"":"s"} — after that it's all profit! 🎉`; }
-      else if(fixed>0){ msg+=` (Raise your price to pay back the $${fixed.toFixed(2)} startup cost.)`; }
-    }
-    box.innerHTML=msg;
-  }
-  // total profit after N customers = per×N − fixed (startup cost subtracted only ONCE)
-  [1,5,10,25,50].forEach(n=>{ const c=document.getElementById("p"+n); if(c){ const total=per*n-fixed; c.textContent=(total<0?"−$":"$")+Math.abs(total).toFixed(2); } });
-  updateTierBE();
+function chkModel(i){ const e=document.getElementById("chk_model_"+i); return !!(e&&e.checked); }
+function teamWages(){ let t=0; for(let i=1;i<=4;i++){ if((val("empRole_"+i)||"").trim()) t+=(+val("empPay_"+i)||0); } return t; }
+// Derive every number from the inputs (no redundant entry).
+function computeFinancials(){
+  const fixed=+val("mFixed")||0, varc=+val("mVar")||0, wages=teamWages();
+  const sub=chkModel(1), free=chkModel(2), service=chkModel(5), onetime=chkModel(0), paywhat=chkModel(6);
+  const recurring = sub || free;              // money comes in every month
+  const tiers=getTiers();
+  const price=+val("mPrice")||0, cust=+val("mCust")||0;
+  let revenue=0, custTotal=0;
+  if(sub){ tiers.forEach(t=>{ revenue+=(+t.price||0)*(+t.cust||0); custTotal+=(+t.cust||0); }); }
+  else { revenue=price*cust; custTotal=cust; }
+  const perCustomer = sub ? null : (price - varc);
+  const monthlyProfit = revenue - wages - varc*custTotal;
+  const paybackMonths = (recurring && monthlyProfit>0 && fixed>0) ? Math.ceil(fixed/monthlyProfit) : null;
+  const breakEvenCust = (!recurring && perCustomer>0 && fixed>0) ? Math.ceil(fixed/perCustomer) : null;
+  const totalProfitOneOff = (!recurring && perCustomer!=null && cust>0) ? (perCustomer*custTotal - fixed) : null;
+  return {fixed,varc,wages,sub,free,service,onetime,paywhat,recurring,tiers,revenue,custTotal,price,cust,perCustomer,monthlyProfit,paybackMonths,breakEvenCust,totalProfitOneOff};
 }
-function updateTierBE(){
-  const fixed=+(val("mFixed"))||0, varc=+(val("mVar"))||0;
+function setPriceLabels(F){
+  const pl=document.getElementById("priceLbl"), cl=document.getElementById("custLbl"), pn=document.getElementById("priceNote"), cn=document.getElementById("custNote");
+  if(!pl) return;
+  let price="Price per sale ($)", cust="How many will you sell?", pnote="What one customer pays each time they buy.", cnote="Your best guess is fine.";
+  if(F.free){ price="Price of your paid version ($ / month)"; cust="Paying customers per month?"; pnote="What someone pays each month to upgrade from free."; }
+  else if(F.service){ price="Price per job or visit ($)"; cust="How many jobs per month?"; pnote="What you charge for one job or visit."; }
+  else if(F.paywhat){ price="Typical price a customer pays ($)"; cust="How many customers?"; pnote="A fair price people usually choose."; }
+  pl.textContent=price; cl.textContent=cust; pn.textContent=pnote; cn.textContent=cnote;
+}
+function money(n){ return (n<0?"−$":"$")+Math.abs(n).toFixed(2); }
+function calcMoney(){
+  const F=computeFinancials();
+  const pw=document.getElementById("priceWrap"); if(pw) pw.style.display=F.sub?"none":"flex";
+  const tw=document.getElementById("tiersWrap"); if(tw) tw.style.display=F.sub?"block":"none";
+  setPriceLabels(F);
+  updateTierBE(F);
+  const box=document.getElementById("moneyCalc"); if(!box) return;
+  let h="";
+  if(F.recurring){
+    if(F.revenue<=0){ h=F.sub?`Add each tier's price and how many customers you expect to see your monthly profit.`:`Add your price and how many paying customers you expect each month.`; }
+    else{
+      h=`<div><b>Money in each month:</b> ${money(F.revenue)}</div>
+         <div><b>Costs each month:</b> ${money(F.wages+F.varc*F.custTotal)}${F.wages?` (includes ${money(F.wages)} team pay)`:""}</div>
+         <div style="margin-top:4px;font-size:16px"><b>Monthly profit:</b> ${money(F.monthlyProfit)} ${F.monthlyProfit<0?"⚠️ costs are higher than money coming in":""}</div>`;
+      if(F.paybackMonths) h+=`<div style="margin-top:4px">You'll earn back your ${money(F.fixed)} startup cost in about <b>${F.paybackMonths} month${F.paybackMonths===1?"":"s"}</b>. 🎉</div>`;
+      else if(F.fixed>0 && F.monthlyProfit<=0) h+=`<div style="margin-top:4px">Raise prices or get more customers to earn back your ${money(F.fixed)} startup cost.</div>`;
+    }
+  } else {
+    if(!(F.price>0)){ h=`Add your price above to see your profit.`; }
+    else if(F.perCustomer<=0){ h=`⚠️ Your price (${money(F.price)}) isn't more than the cost each (${money(F.varc)}). Raise your price!`; }
+    else {
+      h=`<div>Each sale earns you <b>${money(F.perCustomer)}</b> profit (price − cost each).</div>`;
+      if(F.breakEvenCust) h+=`<div style="margin-top:4px">You break even after <b>${F.breakEvenCust}</b> sale${F.breakEvenCust===1?"":"s"} — then it's profit! 🎉</div>`;
+      if(F.totalProfitOneOff!=null) h+=`<div style="margin-top:4px">If you sell <b>${F.cust}</b>, your profit is <b>${money(F.totalProfitOneOff)}</b> (after the one-time cost).</div>`;
+      if(F.wages>0) h+=`<div class="fieldnote" style="margin-top:4px">You'd also pay ${money(F.wages)}/month in team pay.</div>`;
+    }
+  }
+  box.innerHTML=h;
+}
+function updateTierBE(F){
+  F=F||computeFinancials();
   for(let i=1;i<=5;i++){
     const el=document.getElementById("tierBE_"+i); if(!el) continue;
-    const p=+(val("tierPrice_"+i))||0; const name=(val("tierName_"+i)||"").trim(); const per=p-varc;
-    if(name && p>0 && fixed>0 && per>0) el.textContent="≈ "+Math.ceil(fixed/per)+" customers to break even";
-    else if(name && p>0 && fixed>0) el.textContent="raise price above cost each";
+    const p=+(val("tierPrice_"+i))||0; const name=(val("tierName_"+i)||"").trim(); const per=p-F.varc;
+    if(name && p>0 && F.fixed>0 && per>0) el.textContent="≈ "+Math.ceil(F.fixed/per)+" customers here to earn back startup cost";
+    else if(name && p>0 && F.fixed>0) el.textContent="raise price above cost each";
     else el.textContent="";
   }
 }
@@ -808,11 +846,17 @@ function exportPDF(){
   const feats=checkedLabels("feat"); if(val("featOther")) feats.push(val("featOther"));
   const needs=checkedLabels("need"); if(val("needOther")) needs.push(val("needOther"));
   const models=checkedLabels("model");
-  const fixed=+val("mFixed")||0, varc=+val("mVar")||0, price=+val("mPrice")||0, per=price-varc;
-  const be=(fixed>0&&per>0)?Math.ceil(fixed/per):null;
+  const F=computeFinancials();
   const tiersArr=getTiers(), teamArr=getEmployees();
-  const tiersHTML=tiersArr.length?`<p style="margin-top:6px"><b>Subscription tiers:</b> ${tiersArr.map(t=>{const tp=+t.price||0,tbe=(fixed>0&&tp-varc>0)?` (≈${Math.ceil(fixed/(tp-varc))} to break even)`:"";return esc(t.name)+(t.price?` — $${esc(t.price)}/mo`:"")+tbe;}).join("; ")}</p>`:"";
+  const tiersHTML=tiersArr.length?`<p style="margin-top:6px"><b>Subscription tiers:</b> ${tiersArr.map(t=>esc(t.name)+(t.price?` — $${esc(t.price)}/mo`:"")+(t.cust?` (~${esc(t.cust)} customers)`:"")).join("; ")}</p>`:"";
   const teamHTML=teamArr.length?`<p><b>Team &amp; pay:</b> ${teamArr.map(e=>esc(e.role)+(e.pay?` — $${esc(e.pay)}/mo`:"")).join("; ")}</p>`:"";
+  let moneyStats;
+  if(F.recurring && F.revenue>0){
+    moneyStats=`<div class="money"><div><b>${money(F.revenue)}</b><small>money in / mo</small></div><div><b>${money(F.wages+F.varc*F.custTotal)}</b><small>costs / mo</small></div><div><b>${money(F.monthlyProfit)}</b><small>profit / mo</small></div><div><b>${money(F.fixed)}</b><small>startup (once)</small></div></div>`+(F.paybackMonths?`<p style="margin-top:6px"><b>Break-even:</b> about ${F.paybackMonths} month(s) to earn back the startup cost.</p>`:"");
+  } else {
+    const per=(F.perCustomer!=null?F.perCustomer:0);
+    moneyStats=`<div class="money"><div><b>${money(F.price)}</b><small>price each</small></div><div><b>${money(F.varc)}</b><small>cost each</small></div><div><b>${money(per)}</b><small>profit each</small></div><div><b>${money(F.fixed)}</b><small>one-time cost</small></div></div>`+(F.breakEvenCust?`<p style="margin-top:6px"><b>Break-even:</b> ${F.breakEvenCust} sale(s), then it's profit.</p>`:"");
+  }
   const pitch=`Hi! I'm ${esc(val("pitch1")||"___")}. I created ${esc(val("pitch2")||"___")}. It's perfect for ${esc(val("pitch3")||"___")}. It solves ${esc(val("pitch4")||"___")}. Today it's only $${esc(val("pitch5")||"__")}. Would you like to check it out?`;
   const acts=checkedLabels("nextacts");
   const logo=data.img_logo?`<img class="logo-img" src="${data.img_logo}">`:"";
@@ -867,7 +911,7 @@ function exportPDF(){
       ${card("The Idea",(val("productName")?`<p><b>${esc(val("productName"))}</b>${kind?` — ${esc(kind)}`:""}</p>`:"")+(pv("productDesc")?`<p>${esc(pv("productDesc"))}</p>`:"")+chips(feats))}
       ${card("The Customer",line("Problem",pv("custProblem"))+line("Who",val("custAgeGroup"))+line("Needs",pv("custNeeds"))+chips(needs))}
       ${card("Our Edge",line("They could use instead",pv("compAlt"))+line("Why we're different",pv("compBetter")))}
-      ${card("The Money",(models.length?chips(models):"")+tiersHTML+teamHTML+`<div class="money"><div><b>$${price.toFixed(2)}</b><small>price each</small></div><div><b>$${varc.toFixed(2)}</b><small>cost each</small></div><div><b>$${per.toFixed(2)}</b><small>profit each</small></div><div><b>$${fixed.toFixed(2)}</b><small>one-time cost</small></div></div>`+(be?`<p style="margin-top:6px"><b>Break-even:</b> ${be} customers, then it's pure profit.</p>`:""))}
+      ${card("The Money",(models.length?chips(models):"")+tiersHTML+teamHTML+moneyStats)}
       ${(pv("slogan")||poster)?`<div class="c wide"><h4>Marketing</h4><div class="mk"><div style="flex:1">${pv("slogan")?`<p style="font-size:15px"><b>"${esc(pv("slogan"))}"</b></p>`:""}</div>${poster}</div></div>`:""}
       ${card("The Pitch",`<div class="pitch">${pitch}</div>`)}
       ${card("Next Steps",line("First improvement",pv("nextImprove"))+line("Grow by",pv("nextGrow"))+line("1-month goal",val("nextGoal"))+chips(acts))}
@@ -892,12 +936,13 @@ function tierRow(i,ph){ return `<div id="tierWrap_${i}"${i>3?' style="display:no
   <div class="tier-row" id="tierRow_${i}">
     <input type="text" id="tierName_${i}" placeholder="Tier name${ph?' (e.g. '+ph+')':''}" oninput="save()">
     <input type="number" id="tierPrice_${i}" placeholder="$ / month" min="0" step="0.01" oninput="calcMoney();save()">
+    <input type="number" id="tierCust_${i}" placeholder="# customers" min="0" step="1" oninput="calcMoney();save()">
   </div>
   <div class="tier-be" id="tierBE_${i}"></div>
 </div>`; }
 function addTier(){ for(let i=4;i<=5;i++){ const r=document.getElementById("tierWrap_"+i); if(r && r.style.display==="none"){ r.style.display="block"; if(i===5){const b=document.getElementById("addTierBtn"); if(b)b.style.display="none";} return; } } }
-function updateTiers(){ const w=document.getElementById("tiersWrap"); if(!w) return; const sub=document.getElementById("chk_model_1"); w.style.display=(sub&&sub.checked)?"block":"none"; }
-function getTiers(){ const out=[]; for(let i=1;i<=5;i++){ const n=(val("tierName_"+i)||"").trim(); const p=(val("tierPrice_"+i)||"").trim(); if(n) out.push({name:n,price:p}); } return out; }
+function updateTiers(){ if(document.getElementById("moneyCalc")) calcMoney(); }
+function getTiers(){ const out=[]; for(let i=1;i<=5;i++){ const n=(val("tierName_"+i)||"").trim(); const p=(val("tierPrice_"+i)||"").trim(); const c=(val("tierCust_"+i)||"").trim(); if(n) out.push({name:n,price:p,cust:c}); } return out; }
 
 /* ---------- Team & salaries ---------- */
 function employeesBlock(){
@@ -918,10 +963,9 @@ function calcEmp(){ const box=document.getElementById("empTotal"); if(!box) retu
 let reportData=null;
 function reportInput(){
   const g=(grp)=>checkedLabels(grp).join(", ");
-  const tiers=getTiers().map(t=>t.name+(t.price?` ($${t.price}/month)`:"")).join(", ");
+  const F=computeFinancials();
+  const tiers=getTiers().map(t=>t.name+(t.price?` ($${t.price}/month${t.cust?`, about ${t.cust} customers`:""})`:"")).join(", ");
   const team=getEmployees().map(e=>e.role+(e.pay?` ($${e.pay}/month)`:"")).join(", ");
-  const f=+val("mFixed")||0, v=+val("mVar")||0, pr=+val("mPrice")||0, per=pr-v;
-  const breakEven=(f>0&&per>0)?Math.ceil(f/per):"";
   return {
     companyName:val("companyName"), founder:val("founderName")||val("founder2"),
     mission:(val("mission_who")||val("mission_how"))?`We help ${val("mission_who")} by ${val("mission_how")}`:"",
@@ -931,7 +975,10 @@ function reportInput(){
     customerNeeds:[val("custNeeds"),val("needOther")].filter(Boolean).join(", "),
     competitors:val("compAlt"), whatMakesUsDifferent:val("compBetter"),
     revenueModel:g("model"), subscriptionTiers:tiers, teamAndPay:team,
-    startupCost:val("mFixed"), costPerCustomer:val("mVar"), price:val("mPrice"), breakEvenCustomers:breakEven,
+    startupCost:val("mFixed"), costPerCustomer:val("mVar"),
+    pricePerCustomer: F.sub?"":val("mPrice"),
+    monthlyProfit: (F.recurring&&F.revenue>0)?F.monthlyProfit.toFixed(2):"",
+    paybackMonths: F.paybackMonths||"", breakEvenCustomers: F.breakEvenCust||"",
     slogan:val("slogan"),
     pitch:`Hi! I'm ${val("pitch1")}. I created ${val("pitch2")}. It's perfect for ${val("pitch3")}. It solves ${val("pitch4")}. Today it's only $${val("pitch5")}.`,
     nextImprovement:val("nextImprove"), howItGrows:val("nextGrow"), oneMonthGoal:val("nextGoal"), nextActions:g("nextacts")
@@ -961,7 +1008,7 @@ function fallbackReport(x){
     product: x.productName?`Our ${x.productType||"product"} is called ${x.productName}. ${x.productDescription||""}`.trim():(x.productDescription||""),
     customer: x.customerProblem?`Our customers are ${x.customerAgeGroup||"people"} who ${x.customerProblem}. They need ${x.customerNeeds||"help"}.`:"",
     competition: x.competitors?`People could also use ${x.competitors}. Our business is different because ${x.whatMakesUsDifferent||"we care more"}.`:"",
-    money: x.revenueModel?`We make money with ${x.revenueModel}.${x.subscriptionTiers?` Our subscription tiers are ${x.subscriptionTiers}.`:""}${x.price?` Each customer pays $${x.price}.`:""}${x.startupCost?` It costs about $${x.startupCost} to start, which we only pay once.`:""}${x.breakEvenCustomers?` We break even after about ${x.breakEvenCustomers} customers.`:""}${x.teamAndPay?` Our team includes ${x.teamAndPay}.`:""}`:"",
+    money: x.revenueModel?`We make money with ${x.revenueModel}.${x.subscriptionTiers?` Our subscription tiers are ${x.subscriptionTiers}.`:""}${x.pricePerCustomer?` Each customer pays $${x.pricePerCustomer}.`:""}${x.startupCost?` It costs about $${x.startupCost} once to start.`:""}${x.monthlyProfit?` We expect about $${x.monthlyProfit} profit each month.`:""}${x.paybackMonths?` We earn back our startup cost in about ${x.paybackMonths} months.`:""}${x.breakEvenCustomers?` We break even after about ${x.breakEvenCustomers} customers.`:""}${x.teamAndPay?` Our team includes ${x.teamAndPay}.`:""}`:"",
     marketing: x.slogan?`Our slogan is "${x.slogan}."`:"",
     pitch: x.pitch||"",
     nextsteps: [x.nextImprovement&&`First, we will ${x.nextImprovement}.`, x.howItGrows&&`We can grow by ${x.howItGrows}.`, x.oneMonthGoal&&`Our goal for next month is ${x.oneMonthGoal}.`].filter(Boolean).join(" ")
